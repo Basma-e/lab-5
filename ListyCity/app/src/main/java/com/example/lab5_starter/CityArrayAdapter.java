@@ -13,28 +13,23 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 
 public class CityArrayAdapter extends ArrayAdapter<City> {
-    private ArrayList<City> cities;
-    private Context context;
+    private final ArrayList<City> cities;
 
-    public CityArrayAdapter(Context context, ArrayList<City> cities){
+    public CityArrayAdapter(@NonNull Context context, @NonNull ArrayList<City> cities) {
         super(context, 0, cities);
         this.cities = cities;
-        this.context = context;
     }
 
     @NonNull
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent){
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
-        if (view == null){
-            view = LayoutInflater.from(context).inflate(R.layout.layout_city, parent, false);
-        }
+        if (view == null)
+            view = LayoutInflater.from(getContext()).inflate(R.layout.layout_city, parent, false);
 
         City city = cities.get(position);
-        TextView movieName = view.findViewById(R.id.textCityName);
-        TextView movieYear = view.findViewById(R.id.textCityProvince);
-
-        movieName.setText(city.getName());
-        movieYear.setText(city.getProvince());
+        ((TextView) view.findViewById(R.id.textCityName)).setText(city.getCityName());
+        ((TextView) view.findViewById(R.id.textCityProvince)).setText(city.getProvince());
 
         return view;
     }

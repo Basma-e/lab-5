@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
@@ -11,20 +12,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import java.util.Objects;
-
 public class CityDialogFragment extends DialogFragment {
-    interface CityDialogListener {
-        void updateCity(City city, String title, String year);
+
+    public interface CityDialogListener {
+        void updateCity(City city, String name, String province);
         void addCity(City city);
+        void deleteCity(City city);
     }
+
     private CityDialogListener listener;
+    private City city;
 
-    public static CityDialogFragment newInstance(City city){
-        Bundle args = new Bundle();
-        args.putSerializable("City", city);
-
+    public static CityDialogFragment newInstance(@Nullable City city) {
         CityDialogFragment fragment = new CityDialogFragment();
+        Bundle args = new Bundle();
+        if (city != null) {
+            args.putString("cityName", city.getCityName());
+            args.putString("province", city.getProvince());
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -32,48 +37,55 @@ public class CityDialogFragment extends DialogFragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof CityDialogListener){
+        if (context instanceof CityDialogListener)
             listener = (CityDialogListener) context;
-        }
-        else {
-            throw new RuntimeException("Implement listener");
-        }
+        else
+            throw new IllegalStateException("Host must implement CityDialogListener");
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        View view = getLayoutInflater().inflate(R.layout.fragment_city_details, null);
-        EditText editMovieName = view.findViewById(R.id.edit_city_name);
-        EditText editMovieYear = view.findViewById(R.id.edit_province);
+        View view = LayoutInflater.from(requireContext())
+                .inflate(R.layout.fragment_city_details, null);
 
-        String tag = getTag();
-        Bundle bundle = getArguments();
-        City city;
+        EditText editName = view.findViewById(R.id.edit_city_name);
+        EditText editProvince = view.findViewById(R.id.edit_province);
 
-        if (Objects.equals(tag, "City Details") && bundle != null){
-            city = (City) bundle.getSerializable("City");
-            assert city != null;
-            editMovieName.setText(city.getName());
-            editMovieYear.setText(city.getProvince());
+        Bundle args = getArguments();
+        String name = null, province = null;
+        if (args != null) {
+            name = args.getString("cityName");
+            province = args.getString("province");
         }
-        else {
-            city = null;}
+        boolean isEdit = name != null;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        return builder
+        if (isEdit) {
+            editName.setText(name);
+            editProvince.setText(province);
+            city = new City(name, province);
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
+                .setTitle(isEdit ? "City Details" : "Add City")
                 .setView(view)
-                .setTitle("City Details")
                 .setNegativeButton("Cancel", null)
-                .setPositiveButton("Continue", (dialog, which) -> {
-                    String title = editMovieName.getText().toString();
-                    String year = editMovieYear.getText().toString();
-                    if (Objects.equals(tag, "City Details")) {
-                        listener.updateCity(city, title, year);
-                    } else {
-                        listener.addCity(new City(title, year));
-                    }
-                })
-                .create();
+                .setPositiveButton(isEdit ? "Update" : "Add", (dialog, which) -> {
+                    String newName = editName.getText().toString().trim();
+                    String newProv = editProvince.getText().toString().trim();
+
+                    if (isEdit)
+                        listener.updateCity(city, newName, newProv);
+                    else
+                        listener.addCity(new City(newName, newProv));
+                });
+
+        if (isEdit) {
+            builder.setNeutralButton("Delete", (dialog, which) -> {
+                listener.deleteCity(city);
+            });
+        }
+
+        return builder.create();
     }
 }

@@ -2,32 +2,32 @@ package com.example.lab5_starter;
 
 import java.io.Serializable;
 
-// Movie object
+// City model class
 public class City implements Serializable {
-
-    // attributes
-    private String name;
+    private String cityName;
     private String province;
 
-    // constructor
-    public City(String name, String province) {
-        this.name = name;
+    // Firestore requires an empty constructor
+    public City() {}
+
+    public City(String cityName, String province) {
+        this.cityName = cityName;
         this.province = province;
+    }
+
+    public String getCityName() {
+        return cityName;
     }
 
     public String getProvince() {
         return province;
     }
 
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
     public void setProvince(String province) {
         this.province = province;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }
